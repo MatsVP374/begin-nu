@@ -1,4 +1,5 @@
 import './styles/app.css';
+import { registerSW } from 'virtual:pwa-register';
 import { getStore, updateStore } from './state';
 import { createId, emptyStore, exportJson, importJson } from './storage';
 import { computeStreak } from './streak';
@@ -425,3 +426,11 @@ function resumeOnStartup(): void {
 }
 
 resumeOnStartup();
+
+if (import.meta.env.PROD) {
+  // De app moet volledig offline werken na het eerste bezoek. We plannen hier
+  // geen lokale meldingen voor het aflopen van een timer: dat is niet
+  // betrouwbaar mogelijk in een web-app, zeker niet op iOS. Bij terugkeer
+  // toont de app direct de juiste stand, omdat de timer op endAt gebaseerd is.
+  registerSW({ immediate: true });
+}
