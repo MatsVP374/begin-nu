@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF1F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161C2E" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Begin nu">
+<meta name="description" content="Een studie-app die maar één ding doet: je helpen beginnen.">
+<title>Begin nu</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --soft:#E1E6F0; --ink:#1C2541; --muted:#5A6482;
+  --pen:#3E5BD8; --pen-ink:#FFFFFF; --marker:#FFE14D; --line:#CFD6E4; --danger:#B3261E;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  font-family:"Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161C2E; --surface:#1F2740; --soft:#28314D; --ink:#E8ECF5; --muted:#9AA4C2;
+    --pen:#8FA5FF; --pen-ink:#10163A; --marker:#E9C93A; --line:#343E5E; --danger:#FF8A80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161C2E; --surface:#1F2740; --soft:#28314D; --ink:#E8ECF5; --muted:#9AA4C2;
+  --pen:#8FA5FF; --pen-ink:#10163A; --marker:#E9C93A; --line:#343E5E; --danger:#FF8A80;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+main{max-width:32rem;margin:0 auto;padding:1.75rem 1.25rem 2.5rem;min-height:100%;display:flex;flex-direction:column}
+.view{display:none;flex:1;flex-direction:column}
+.view.on{display:flex}
+h1{font-size:clamp(1.9rem,7.5vw,2.5rem);line-height:1.08;font-weight:700;letter-spacing:-.025em;margin:0 0 .6rem}
+h2{font-size:1.1rem;font-weight:600;margin:2rem 0 .7rem}
+p{font-size:1.02rem;line-height:1.5;color:var(--muted);margin:0 0 1rem}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+
+/* Formulier */
+label{display:block;font-weight:600;font-size:.98rem;margin:1.25rem 0 .4rem}
+label span{font-weight:400;color:var(--muted)}
+input[type=text],textarea{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:.8rem;padding:.85rem 1rem;font-size:1.05rem}
+input[type=text]:focus,textarea:focus{border-color:var(--pen);outline:none}
+textarea{min-height:7rem;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.chip{background:var(--soft);border:0;border-radius:999px;padding:.45rem .85rem;font-size:.92rem}
+
+/* Knoppen */
+.actions{margin-top:auto;padding-top:1.75rem;display:flex;flex-direction:column;gap:.6rem}
+.primary{background:var(--pen);color:var(--pen-ink);border:0;border-radius:999px;padding:1.05rem 1.5rem;font-size:1.15rem;font-weight:600}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.secondary{background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:.95rem 1.5rem;font-size:1.05rem;font-weight:500}
+.quiet{background:none;border:0;color:var(--muted);padding:.6rem;font-size:.98rem;text-decoration:underline;text-underline-offset:3px}
+.danger{color:var(--danger)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;min-height:2rem}
+.brand{font-weight:700;font-size:1.05rem;letter-spacing:-.01em}
+.link{background:none;border:0;color:var(--pen);font-weight:600;font-size:.98rem;padding:.3rem 0}
+
+.streakline{background:var(--surface);border-radius:1rem;padding:.9rem 1rem;font-size:.98rem;color:var(--muted);margin-top:1.5rem}
+.streakline strong{color:var(--ink)}
+
+/* Timer */
+.timer{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:.5rem}
+.what{font-size:1rem;color:var(--muted);margin:0}
+.step{font-size:1.3rem;font-weight:600;color:var(--ink);margin:0 0 1.5rem;max-width:22rem}
+.clock{font-size:clamp(5.5rem,30vw,9rem);font-weight:700;letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums;position:relative;padding:0 .12em}
+.clock::before{content:"";position:absolute;left:0;right:0;bottom:.08em;height:.38em;background:var(--marker);z-index:-1;border-radius:.08em;transform-origin:left;transform:scaleX(var(--p,0));transition:transform .3s linear}
+.clock span{position:relative}
+.label{font-size:.98rem;color:var(--muted);margin:.75rem 0 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+
+/* Kaarten & balken */
+.card{background:var(--surface);border-radius:1.1rem;padding:1.1rem 1.15rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.stat{background:var(--surface);border-radius:1rem;padding:.9rem .8rem}
+.stat b{display:block;font-size:2rem;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.stat small{font-size:.85rem;color:var(--muted);line-height:1.3;display:block;margin-top:.2rem}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;align-items:end;height:6.5rem;background:var(--surface);border-radius:1rem;padding:.9rem .8rem .5rem}
+.day{display:flex;flex-direction:column;align-items:center;gap:.3rem;height:100%;justify-content:flex-end}
+.day i{display:block;width:100%;max-width:1.6rem;background:var(--pen);border-radius:.35rem .35rem .15rem .15rem;min-height:3px}
+.day i.zero{background:var(--soft)}
+.day small{font-size:.75rem;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:.55rem}
+.bar{display:grid;grid-template-columns:minmax(5rem,8rem) 1fr auto;align-items:center;gap:.6rem;font-size:.95rem}
+.bar .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .num{color:var(--muted);font-variant-numeric:tabular-nums}
+.track{height:.65rem;background:var(--soft);border-radius:999px;overflow:hidden}
+.fill{height:100%;background:var(--pen);border-radius:999px}
+.notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
+.notes li{background:var(--surface);border-radius:.9rem;padding:.8rem .9rem;display:flex;gap:.75rem;align-items:flex-start}
+.notes li p{margin:0;color:var(--ink);flex:1;font-size:.98rem;word-break:break-word}
+.notes li small{display:block;color:var(--muted);font-size:.8rem;margin-top:.2rem}
+.x{background:none;border:0;color:var(--muted);font-size:1.3rem;line-height:1;padding:.1rem .3rem}
+.empty{color:var(--muted);font-size:.95rem}
+.hint{font-size:.9rem;color:var(--muted);margin-top:.5rem}
+.toast{position:fixed;left:50%;bottom:calc(1.25rem + env(safe-area-inset-bottom,0px));transform:translate(-50%,1rem);background:var(--ink);color:var(--bg);padding:.7rem 1.1rem;border-radius:999px;font-size:.95rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion: reduce){ .clock::before{transition:none} .toast{transition:none} }
+</style>
+</head>
+<body>
+<main>
+
+<!-- START -->
+<section class="view" id="v-start">
+  <div class="topbar"><span class="brand">Begin nu</span><button class="link" data-go="progress">Voortgang</button></div>
+  <h1>Wat ga je doen?</h1>
+  <p>Je hoeft niet te studeren. Alleen te beginnen.</p>
+
+  <label for="inVak">Vak</label>
+  <input type="text" id="inVak" autocomplete="off" placeholder="Bijv. Statistiek">
+  <div class="chips" id="vakChips"></div>
+
+  <label for="inStep">Allerkleinste eerste stap <span>(iets van 2 minuten)</span></label>
+  <input type="text" id="inStep" autocomplete="off" placeholder="Bijv. de pdf van hoofdstuk 3 openen">
+  <div class="chips" id="stepChips"></div>
+
+  <div class="streakline" id="streakLine"></div>
+
+  <div class="actions">
+    <button class="primary" id="btnStart" disabled>Begin nu, 2 minuten</button>
+    <button class="quiet" id="btnLater">Ik begin straks…</button>
+  </div>
+</section>
+
+<!-- STRAKS -->
+<section class="view" id="v-later">
+  <div class="topbar"><span class="brand">Begin nu</span></div>
+  <h1 id="laterTitle">Straks wordt vaak later.</h1>
+  <p id="laterText"></p>
+  <div class="card"><p style="margin:0;color:var(--ink)">Twee minuten is kort genoeg om niet tegen op te zien. Wie begint, gaat meestal vanzelf door.</p></div>
+  <div class="actions">
+    <button class="primary" id="btnLaterYes">Oké, twee minuten</button>
+    <button class="quiet" data-go="start">Terug</button>
+  </div>
+</section>
+
+<!-- TIMER -->
+<section class="view" id="v-timer">
+  <div class="timer">
+    <p class="what" id="tVak"></p>
+    <p class="step" id="tStep"></p>
+    <div class="clock" id="clock"><span id="clockText">2:00</span></div>
+    <p class="label" id="tLabel">Alleen deze stap. Meer hoeft niet.</p>
+  </div>
+  <div class="actions">
+    <button class="secondary" id="btnPark">Er schiet iets door mijn hoofd</button>
+    <button class="quiet" id="btnStop">Stoppen</button>
+  </div>
+</section>
+
+<!-- PARKEERPLAATS -->
+<section class="view" id="v-park">
+  <h1>Parkeer het even.</h1>
+  <p>Schrijf op wat je wilt checken of opzoeken. Na het blok kijk je ernaar. De timer loopt gewoon door.</p>
+  <label for="inNote" style="position:absolute;left:-9999px">Gedachte</label>
+  <textarea id="inNote" placeholder="Bijv. appje van Sam beantwoorden, die video afkijken"></textarea>
+  <div class="actions">
+    <button class="primary" id="btnParkSave">Opschrijven en terug</button>
+    <button class="quiet" id="btnParkBack">Terug zonder opschrijven</button>
+  </div>
+</section>
+
+<!-- NA 2 MINUTEN -->
+<section class="view" id="v-started">
+  <div class="topbar"><span class="brand">Begin nu</span></div>
+  <h1>Je bent begonnen.</h1>
+  <p>Dat was het moeilijkste stuk. Hoe verder?</p>
+  <div class="actions">
+    <div class="row2">
+      <button class="primary" data-block="10">Nog 10 min</button>
+      <button class="primary" data-block="25">Nog 25 min</button>
+    </div>
+    <button class="secondary" id="btnDoneEarly">Klaar voor nu</button>
+    <p class="hint">Stoppen na twee minuten telt ook. Morgen weer twee.</p>
+  </div>
+</section>
+
+<!-- NA EEN BLOK -->
+<section class="view" id="v-block">
+  <div class="topbar"><span class="brand">Begin nu</span></div>
+  <h1 id="blockTitle">Lekker bezig.</h1>
+  <p id="blockText"></p>
+  <div class="actions">
+    <button class="primary" id="btnBreak">5 minuten pauze</button>
+    <div class="row2">
+      <button class="secondary" data-block="10">Nog 10 min</button>
+      <button class="secondary" data-block="25">Nog 25 min</button>
+    </div>
+    <button class="quiet" id="btnFinish">Klaar voor vandaag</button>
+  </div>
+</section>
+
+<!-- PAUZE KLAAR -->
+<section class="view" id="v-breakdone">
+  <div class="topbar"><span class="brand">Begin nu</span></div>
+  <h1>Pauze voorbij.</h1>
+  <p>Weer twee minuten? Daarna kijk je gewoon verder.</p>
+  <div class="actions">
+    <button class="primary" id="btnAgain">Begin nu, 2 minuten</button>
+    <button class="quiet" id="btnFinish2">Klaar voor vandaag</button>
+  </div>
+</section>
+
+<!-- KLAAR -->
+<section class="view" id="v-done">
+  <div class="topbar"><span class="brand">Begin nu</span></div>
+  <h1 id="doneTitle">Goed gedaan.</h1>
+  <p id="doneText"></p>
+  <div id="doneNotesWrap" hidden>
+    <h2>Wat je had geparkeerd</h2>
+    <ul class="notes" id="doneNotes"></ul>
+  </div>
+  <div class="actions">
+    <button class="primary" data-go="start">Naar het begin</button>
+    <button class="quiet" data-go="progress">Bekijk je voortgang</button>
+  </div>
+</section>
+
+<!-- VOORTGANG -->
+<section class="view" id="v-progress">
+  <div class="topbar"><button class="link" data-go="start">Terug</button><span class="brand">Voortgang</span></div>
+  <div class="stats">
+    <div class="stat"><b id="pStreak">0</b><small id="pStreakLbl">dagen op rij begonnen</small></div>
+    <div class="stat"><b id="pStarts">0</b><small>keer begonnen deze week</small></div>
+    <div class="stat"><b id="pMin">0</b><small>minuten gestudeerd deze week</small></div>
+  </div>
+
+  <h2>Afgelopen 7 dagen</h2>
+  <div class="week" id="pWeek" aria-label="Minuten per dag"></div>
+
+  <h2>Per vak</h2>
+  <div class="bars" id="pVak"></div>
+
+  <h2>Parkeerplaats</h2>
+  <ul class="notes" id="pNotes"></ul>
+
+  <p class="hint" id="syncNote">Alles blijft op dit apparaat.</p>
+  <div class="actions">
+    <button class="quiet danger" id="btnReset">Alles wissen</button>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "begin-nu-v1";
+  var $ = function(id){ return document.getElementById(id); };
+  var DAYS = ["zo","ma","di","wo","do","vr","za"];
+
+  /* ---------- Opslag ---------- */
+  var empty = function(){ return {sessions:[], notes:[], active:null, updated:0}; };
+  var state = load();
+  var remote = null;
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return empty();
+      var s = JSON.parse(raw);
+      return Object.assign(empty(), s);
+    }catch(e){ return empty(); }
+  }
+  function save(){
+    state.updated = Date.now();
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+    if(remote){ remote.set(JSON.parse(JSON.stringify(state))).catch(function(){}); }
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function mergeById(a, b){
+    var m = new Map();
+    (a||[]).concat(b||[]).forEach(function(x){
+      if(!x || !x.id) return;
+      var cur = m.get(x.id);
+      if(!cur || (x.minutes||0) >= (cur.minutes||0)) m.set(x.id, x);
+    });
+    return Array.from(m.values());
+  }
+
+  // Optionele synchronisatie als de app als Claude-artifact draait
+  (function(){
+    try{
+      if(!window.claude || typeof window.claude.use !== "function") return;
+      Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function(r){
+        var db = r[0], user = r[1];
+        if(!db || !user) return;
+        return user.id().then(function(id){
+          if(!id) return;
+          var ref = db.doc("data/users/" + id + "/beginnu");
+          return ref.get().then(function(snap){
+            var d = snap.exists ? snap.data() : null;
+            if(d){
+              state.sessions = mergeById(d.sessions, state.sessions);
+              state.notes = mergeById(d.notes, state.notes).filter(function(n){ return !n.gone; });
+              if(!state.active && d.active && d.active.endAt > Date.now()) state.active = d.active;
+            }
+            remote = ref;
+            save();
+            $("syncNote").textContent = "Gesynchroniseerd met je Claude-account.";
+            refresh();
+          });
+        });
+      }).catch(function(){});
+    }catch(e){}
+  })();
+
+  /* ---------- Hulpjes ---------- */
+  function dayKey(t){ var d = new Date(t); return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate(); }
+  function startOfDay(t){ var d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); }
+  function fmt(sec){ sec = Math.max(0, Math.ceil(sec)); var m = Math.floor(sec/60), s = sec%60; return m + ":" + (s<10?"0":"") + s; }
+  function hhmm(d){ return d.getHours() + ":" + (d.getMinutes()<10?"0":"") + d.getMinutes(); }
+  function toast(msg){ var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove("on"); }, 2200); }
+  function esc(s){ var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+  function streak(){
+    var days = new Set(state.sessions.map(function(s){ return dayKey(s.start); }));
+    var n = 0, t = Date.now();
+    if(!days.has(dayKey(t))) t -= 864e5; // vandaag nog niet begonnen breekt de reeks niet
+    while(days.has(dayKey(t))){ n++; t -= 864e5; }
+    return n;
+  }
+
+  /* ---------- Navigatie ---------- */
+  var current = "start";
+  function show(name){
+    current = name;
+    document.querySelectorAll(".view").forEach(function(v){ v.classList.toggle("on", v.id === "v-" + name); });
+    window.scrollTo(0,0);
+    if(name === "start") renderStart();
+    if(name === "progress") renderProgress();
+  }
+  function refresh(){ if(current === "start") renderStart(); if(current === "progress") renderProgress(); }
+
+  /* ---------- Start ---------- */
+  var inVak = $("inVak"), inStep = $("inStep");
+  function validate(){ $("btnStart").disabled = !(inVak.value.trim() && inStep.value.trim()); }
+  inVak.addEventListener("input", validate);
+  inStep.addEventListener("input", validate);
+
+  function renderStart(){
+    var recentVak = [], seen = new Set();
+    state.sessions.slice().sort(function(a,b){ return b.start - a.start; }).forEach(function(s){
+      if(!seen.has(s.vak) && recentVak.length < 5){ seen.add(s.vak); recentVak.push(s.vak); }
+    });
+    var vc = $("vakChips"); vc.innerHTML = "";
+    recentVak.forEach(function(v){
+      var b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.textContent = v;
+      b.onclick = function(){ inVak.value = v; validate(); inStep.focus(); };
+      vc.appendChild(b);
+    });
+    var sc = $("stepChips"); sc.innerHTML = "";
+    ["Boek of pdf openen","Aantekeningen van vorige keer lezen","Eén opgave maken","Eén zin schrijven"].forEach(function(v){
+      var b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.textContent = v;
+      b.onclick = function(){ inStep.value = v; validate(); };
+      sc.appendChild(b);
+    });
+    var n = streak();
+    var today = state.sessions.some(function(s){ return s.start >= startOfDay(Date.now()); });
+    $("streakLine").innerHTML = n === 0
+      ? "Nog geen reeks. De eerste twee minuten vandaag starten er een."
+      : today
+        ? "Je bent <strong>" + n + (n===1?" dag":" dagen") + " op rij</strong> begonnen. Vandaag telt al mee."
+        : "Je bent <strong>" + n + (n===1?" dag":" dagen") + " op rij</strong> begonnen. Twee minuten houden de reeks vast.";
+    validate();
+  }
+
+  $("btnStart").onclick = function(){ beginSession(); };
+  $("btnLater").onclick = function(){
+    var now = new Date(), next = new Date(now);
+    next.setSeconds(0,0);
+    next.setMinutes(now.getMinutes() < 30 ? 30 : 60);
+    $("laterText").textContent = "Doe eerst twee minuten. Daarna mag je pauzeren tot " + hhmm(next) + ", en dan ben je al op gang.";
+    show("later");
+  };
+  $("btnLaterYes").onclick = function(){
+    if(!inVak.value.trim() || !inStep.value.trim()){ show("start"); toast("Vul eerst je vak en eerste stap in"); (inVak.value.trim()?inStep:inVak).focus(); return; }
+    beginSession();
+  };
+
+  /* ---------- Sessie & timer ---------- */
+  var session = null, tick = null, wake = null;
+
+  function beginSession(){
+    session = {id:uid(), vak:inVak.value.trim(), step:inStep.value.trim(), start:Date.now(), minutes:0, blocks:0};
+    state.sessions.push(session);
+    startTimer("start", 2);
+  }
+  function findSession(id){ return state.sessions.find(function(s){ return s.id === id; }) || null; }
+
+  function startTimer(kind, minutes){
+    unlockAudio();
+    var now = Date.now();
+    state.active = {kind:kind, sessionId:session.id, startedAt:now, endAt:now + minutes*60000, total:minutes*60};
+    save();
+    $("tVak").textContent = session.vak;
+    $("tStep").textContent = kind === "break" ? "Pauze. Even weg van je scherm." : session.step;
+    $("tLabel").textContent = kind === "start" ? "Alleen deze stap. Meer hoeft niet."
+      : kind === "break" ? "Rek je uit, pak iets te drinken."
+      : "Gewoon doorgaan. Afleiding? Parkeer het.";
+    $("btnPark").hidden = kind === "break";
+    show("timer");
+    requestWake();
+    runTick();
+  }
+
+  function runTick(){
+    clearInterval(tick);
+    var step = function(){
+      var a = state.active; if(!a) return;
+      var left = (a.endAt - Date.now())/1000;
+      $("clockText").textContent = fmt(left);
+      $("clock").style.setProperty("--p", Math.min(1, 1 - left/a.total).toFixed(3));
+      document.title = fmt(left) + " · Begin nu";
+      if(left <= 0){ clearInterval(tick); finishTimer(true); }
+    };
+    step();
+    tick = setInterval(step, 250);
+  }
+
+  function creditMinutes(a){
+    if(a.kind === "break") return;
+    var s = findSession(a.sessionId); if(!s) return;
+    var mins = Math.min(a.endAt, Date.now()) - a.startedAt;
+    s.minutes = Math.round(((s.minutes||0) + mins/60000) * 10) / 10;
+    s.blocks = (s.blocks||0) + 1;
+    session = s;
+  }
+
+  function finishTimer(natural){
+    var a = state.active; if(!a) return;
+    creditMinutes(a);
+    state.active = null;
+    save();
+    releaseWake();
+    document.title = "Begin nu";
+    if(natural) chime();
+    if(a.kind === "start") show("started");
+    else if(a.kind === "break") show("breakdone");
+    else {
+      var m = Math.round(session.minutes);
+      $("blockTitle").textContent = ["Lekker bezig.","Netjes.","Zo gaat dat."][Math.floor(Math.random()*3)];
+      $("blockText").textContent = "Je zit nu op " + m + (m===1?" minuut":" minuten") + " " + session.vak + " in deze sessie. Pauze is ook studeren: je hoofd verwerkt het dan.";
+      show("block");
+    }
+  }
+
+  document.querySelectorAll("[data-block]").forEach(function(b){
+    b.onclick = function(){ startTimer("block", parseInt(b.dataset.block,10)); };
+  });
+  $("btnBreak").onclick = function(){ startTimer("break", 5); };
+  $("btnAgain").onclick = function(){ startTimer("block", 2); };
+  $("btnDoneEarly").onclick = finishSession;
+  $("btnFinish").onclick = finishSession;
+  $("btnFinish2").onclick = finishSession;
+
+  $("btnStop").onclick = function(){
+    var a = state.active; if(!a) return show("start");
+    clearInterval(tick);
+    if(a.kind === "break"){ state.active = null; save(); releaseWake(); document.title = "Begin nu"; show("breakdone"); return; }
+    creditMinutes(a);
+    state.active = null; save(); releaseWake(); document.title = "Begin nu";
+    finishSession();
+  };
+
+  function finishSession(){
+    var m = session ? Math.round(session.minutes) : 0;
+    $("doneTitle").textContent = m >= 2 ? "Goed gedaan." : "Je bent begonnen, dat telt.";
+    $("doneText").textContent = session
+      ? (m < 1 ? "Je hebt het geprobeerd. Morgen gewoon weer twee minuten." :
+         m + (m===1?" minuut":" minuten") + " aan " + session.vak + ". De reeks staat op " + streak() + (streak()===1?" dag.":" dagen."))
+      : "";
+    var open = state.notes.filter(function(n){ return !n.done && session && n.sessionId === session.id; });
+    $("doneNotesWrap").hidden = open.length === 0;
+    renderNotes($("doneNotes"), open);
+    session = null;
+    inStep.value = "";
+    show("done");
+  }
+
+  /* ---------- Parkeerplaats ---------- */
+  $("btnPark").onclick = function(){ $("inNote").value = ""; show("park"); setTimeout(function(){ $("inNote").focus(); }, 50); };
+  $("btnParkBack").onclick = function(){ show("timer"); };
+  $("btnParkSave").onclick = function(){
+    var txt = $("inNote").value.trim();
+    if(txt){ state.notes.push({id:uid(), t:Date.now(), text:txt, sessionId:session ? session.id : null, done:false}); save(); toast("Geparkeerd"); }
+    show("timer");
+  };
+
+  function renderNotes(el, list){
+    el.innerHTML = "";
+    if(!list.length){ el.innerHTML = '<li><p class="empty" style="color:var(--muted)">Leeg. Tijdens een blok kun je hier gedachten kwijt.</p></li>'; return; }
+    list.slice().sort(function(a,b){ return b.t - a.t; }).forEach(function(n){
+      var li = document.createElement("li");
+      var d = new Date(n.t);
+      li.innerHTML = '<p>' + esc(n.text) + '<small>' + DAYS[d.getDay()] + " " + hhmm(d) + '</small></p><button class="x" aria-label="Afgehandeld">×</button>';
+      li.querySelector("button").onclick = function(){ n.done = true; save(); li.remove(); if(!el.children.length) renderNotes(el, []); };
+      el.appendChild(li);
+    });
+  }
+
+  /* ---------- Voortgang ---------- */
+  function renderProgress(){
+    var weekStart = startOfDay(Date.now()) - 6*864e5;
+    var week = state.sessions.filter(function(s){ return s.start >= weekStart; });
+    var sk = streak(); $("pStreak").textContent = sk; $("pStreakLbl").textContent = (sk===1?"dag":"dagen") + " op rij begonnen";
+    $("pStarts").textContent = week.length;
+    $("pMin").textContent = Math.round(week.reduce(function(a,s){ return a + (s.minutes||0); }, 0));
+
+    var perDay = [];
+    for(var i=0;i<7;i++){
+      var ds = weekStart + i*864e5;
+      var mins = week.filter(function(s){ return s.start >= ds && s.start < ds + 864e5; }).reduce(function(a,s){ return a + (s.minutes||0); }, 0);
+      perDay.push({d:new Date(ds), m:mins});
+    }
+    var maxD = Math.max(1, Math.max.apply(null, perDay.map(function(x){ return x.m; })));
+    var w = $("pWeek"); w.innerHTML = "";
+    perDay.forEach(function(x){
+      var el = document.createElement("div"); el.className = "day";
+      el.innerHTML = '<i class="' + (x.m ? "" : "zero") + '" style="height:' + (x.m ? Math.max(6, x.m/maxD*100) : 4) + '%"></i><small>' + DAYS[x.d.getDay()] + '</small>';
+      el.title = Math.round(x.m) + " minuten";
+      w.appendChild(el);
+    });
+
+    var byVak = {};
+    week.forEach(function(s){ byVak[s.vak] = (byVak[s.vak]||0) + (s.minutes||0); });
+    var items = Object.keys(byVak).map(function(k){ return {k:k, m:byVak[k]}; }).sort(function(a,b){ return b.m - a.m; });
+    var pv = $("pVak"); pv.innerHTML = "";
+    if(!items.length){ pv.innerHTML = '<p class="empty">Nog niks deze week. Twee minuten is genoeg om te beginnen.</p>'; }
+    var maxV = Math.max(1, items.length ? items[0].m : 1);
+    items.forEach(function(it){
+      var row = document.createElement("div"); row.className = "bar";
+      row.innerHTML = '<span class="name"></span><div class="track"><div class="fill"></div></div><span class="num"></span>';
+      row.querySelector(".name").textContent = it.k;
+      row.querySelector(".fill").style.width = Math.max(3, it.m/maxV*100) + "%";
+      row.querySelector(".num").textContent = Math.round(it.m) + " min";
+      pv.appendChild(row);
+    });
+
+    renderNotes($("pNotes"), state.notes.filter(function(n){ return !n.done; }));
+  }
+
+  $("btnReset").onclick = function(){
+    if(!confirm("Alle sessies en notities wissen? Dit kan niet ongedaan worden.")) return;
+    state = empty(); save(); session = null; toast("Alles gewist"); show("start");
+  };
+
+  document.querySelectorAll("[data-go]").forEach(function(b){ b.onclick = function(){ show(b.dataset.go); }; });
+
+  /* ---------- Geluid, trillen, scherm aan ---------- */
+  var ctx = null;
+  function unlockAudio(){
+    try{ if(!ctx){ var AC = window.AudioContext || window.webkitAudioContext; if(AC) ctx = new AC(); } if(ctx && ctx.state === "suspended") ctx.resume(); }catch(e){}
+  }
+  function chime(){
+    try{ if(navigator.vibrate) navigator.vibrate([120,80,120]); }catch(e){}
+    try{
+      if(!ctx) return;
+      [660, 880].forEach(function(f, i){
+        var o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + i*0.18;
+        o.type = "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t+0.02); g.gain.exponentialRampToValueAtTime(0.0001, t+0.6);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.65);
+      });
+    }catch(e){}
+  }
+  function requestWake(){ try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){ wake = l; }).catch(function(){}); }catch(e){} }
+  function releaseWake(){ try{ if(wake){ wake.release(); wake = null; } }catch(e){} }
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible" && state.active){ requestWake(); runTick(); }
+  });
+
+  /* ---------- Offline (alleen als losse app, niet als artifact) ---------- */
+  try{
+    if("serviceWorker" in navigator && location.protocol === "https:" && !/claude\.ai|claudeusercontent/.test(location.hostname)){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    }
+  }catch(e){}
+
+  /* ---------- Opstarten: lopende timer hervatten ---------- */
+  if(state.active){
+    session = findSession(state.active.sessionId);
+    if(!session){ state.active = null; save(); show("start"); }
+    else if(state.active.endAt <= Date.now()){ finishTimer(false); }
+    else {
+      $("tVak").textContent = session.vak;
+      $("tStep").textContent = state.active.kind === "break" ? "Pauze. Even weg van je scherm." : session.step;
+      $("btnPark").hidden = state.active.kind === "break";
+      show("timer"); requestWake(); runTick();
+    }
+  } else show("start");
+})();
+</script>
+</body>
+</html>
