@@ -1,6 +1,6 @@
 import './styles/app.css';
 import { getStore, updateStore } from './state';
-import { createId } from './storage';
+import { createId, emptyStore, exportJson, importJson } from './storage';
 import { computeStreak } from './streak';
 import {
   createTimer,
@@ -11,7 +11,7 @@ import {
   remainingSeconds,
 } from './timer';
 import * as feedback from './feedback';
-import { laterCopy, parkCopy } from './copy';
+import { laterCopy, parkCopy, progressCopy } from './copy';
 import type { ActiveTimer, Note, Session, TimerKind } from './types';
 import type { AppController, Draft, NavigateOptions, Screen } from './views/context';
 
@@ -328,6 +328,38 @@ function finishSession(): void {
   navigate('done', { replace: true });
 }
 
+function exportData(): void {
+  const json = exportJson(getStore());
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `begin-nu-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function importData(file: File): Promise<void> {
+  try {
+    const text = await file.text();
+    updateStore((s) => importJson(s, text));
+    toast(progressCopy.importedToast);
+    renderScreen();
+  } catch {
+    toast(progressCopy.importFailedToast);
+  }
+}
+
+function resetAll(): void {
+  updateStore(() => emptyStore());
+  currentSessionId = null;
+  draft = { subject: '', firstStep: '' };
+  toast(progressCopy.resetToast);
+  navigate('start');
+}
+
 function toStart(): void {
   // Baseer het te behouden vak op de zojuist afgeronde sessie (persistente data),
   // niet op het in-memory draft-veld: dat kan leeg zijn na een herlaad tijdens de sessie.
@@ -358,6 +390,9 @@ const app: AppController = {
   toStart,
   toast,
   now: () => Date.now(),
+  exportData,
+  importData,
+  resetAll,
 };
 
 document.addEventListener('visibilitychange', () => {

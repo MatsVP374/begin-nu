@@ -38,6 +38,9 @@ export interface AppController {
   toStart(): void;
   toast(message: string): void;
   now(): number;
+  exportData(): void;
+  importData(file: File): Promise<void>;
+  resetAll(): void;
 }
 
 export interface ActiveTimerView {

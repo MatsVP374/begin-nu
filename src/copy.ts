@@ -118,4 +118,29 @@ export const doneCopy = {
 export const progressCopy = {
   title: 'Voortgang',
   back: 'Terug',
+  streakTileLabel(streak: number): string {
+    return `${streak === 1 ? 'dag' : 'dagen'} op rij begonnen`;
+  },
+  startsTileLabel: 'keer begonnen deze week',
+  minutesTileLabel: 'minuten gestudeerd deze week',
+  weekHeading: 'Afgelopen 7 dagen',
+  subjectHeading: 'Per vak',
+  subjectEmpty: 'Nog niks deze week. Twee minuten is genoeg om te beginnen.',
+  excuseText(chosenLater: number, startedAnyway: number): string {
+    return `Je koos ${chosenLater} keer voor 'straks' deze week, en begon er ${startedAnyway} keer toch meteen.`;
+  },
+  parkHeading: 'Parkeerplaats',
+  parkEmpty: 'Niks geparkeerd. Tijdens een blok kun je hier gedachten kwijt.',
+  dataHeading: 'Gegevens',
+  exportButton: 'Exporteren',
+  importButton: 'Importeren',
+  resetButton: 'Alles wissen',
+  resetConfirm: 'Alle sessies en notities wissen? Dit kan niet ongedaan worden.',
+  resetToast: 'Alles gewist',
+  importedToast: 'Geïmporteerd',
+  importFailedToast: 'Dat bestand kon niet gelezen worden',
+  storageWarning:
+    'Safari kan gegevens van websites wissen die je een week niet opent. Zet de app op je beginscherm, dan gebeurt dat niet.',
 };
+
+export const dayLabels = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
