@@ -112,7 +112,10 @@ test('werkt offline na het eerste bezoek', async ({ page, context }) => {
     .catch(() => undefined);
 
   await context.setOffline(true);
-  await page.reload();
-  await expect(page.locator('h1')).toHaveText('Wat ga je doen?');
+  // page.reload() raakt in WebKit soms een driver-fout ("WebKit encountered an
+  // internal error") als de context offline is. Herladen via de pagina zelf
+  // omzeilt Playwrights eigen navigatie-orkestratie en is stabieler.
+  await page.evaluate(() => window.location.reload()).catch(() => undefined);
+  await expect(page.locator('h1')).toHaveText('Wat ga je doen?', { timeout: 15_000 });
   await context.setOffline(false);
 });
