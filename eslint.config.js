@@ -1,0 +1,25 @@
+// @ts-check
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import prettier from 'eslint-config-prettier';
+
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  prettier,
+  {
+    ignores: [
+      'dist/**',
+      'dev-dist/**',
+      'node_modules/**',
+      'playwright-report/**',
+      'test-results/**',
+    ],
+  },
+  {
+    files: ['**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+);
